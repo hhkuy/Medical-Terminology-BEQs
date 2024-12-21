@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Application</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* التنسيقات تبقى كما هي */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 700px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #343a40;
+            font-size: 32px;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .question {
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            color: #495057;
+        }
+
+        .question-number {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .option input {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .option label {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .correct {
+            background-color: #28a745 !important;
+            color: white;
+        }
+
+        .wrong {
+            background-color: #dc3545 !important;
+            color: white;
+        }
+
+        .unanswered {
+            background-color: #ffc107 !important;
+            color: black;
+        }
+
+        .correct-answer {
+            background-color: #28a745 !important;
+            color: white;
+            border: 2px solid #28a745;
+        }
+
+        button {
+            padding: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #shuffle-questions {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-questions:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #shuffle-options {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-options:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #show-result {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #show-result:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #reset-quiz {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #reset-quiz:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
+            color: #343a40;
+        }
+
+        .floating-button-container {
+            position: fixed !important;
+            top: 80px !important;
+            right: 20px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 9999 !important;
+        }
+
+        .floating-button {
+            background-color: #007bff;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .floating-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* تنسيقات لمربع الحوار المخصص */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .modal-button.yes {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .modal-button.no {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* تنسيقات إضافية للأزرار الجديدة */
+        .show-answer-button, .clear-button, .shuffle-options-button {
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .show-answer-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .show-answer-button:hover {
+            background-color: #218838;
+        }
+
+        .shuffle-options-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .shuffle-options-button:hover {
+            background-color: #0056b3;
+        }
+
+        .clear-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+
+        /* تنسيقات لأزرار الفلترة */
+        .filter-button {
+            padding: 12px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .filter-button.correct {
+            background-color: #28a745;
+        }
+
+        .filter-button.wrong {
+            background-color: #dc3545;
+        }
+
+        .filter-button.unanswered {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .filter-button.all {
+            background-color: #007bff;
+        }
+        
+        #jump-input {
+    width: 250px; /* عرض الحقل */
+    height: 20px; /* ارتفاع الحقل */
+    font-size: 16px; /* حجم النص داخل الحقل */
+    padding: 10px; /* المسافة الداخلية بين النص وحدود الحقل */
+    border-radius: 8px; /* حواف مستديرة */
+    border: 1px solid #ced4da; /* لون الحدود */
+}
+
+#jump-input:focus {
+    outline: none; /* إزالة الحدود الزرقاء الافتراضية */
+    border-color: #80bdff; /* تغيير لون الحدود عند التفاعل */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* إضافة تأثير ظل عند التفاعل */
+}
+
+        #search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0;
+            list-style-type: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #search-results ul {
+            padding: 0;
+            list-style-type: none;
+            margin: 0;
+        }
+
+        #search-results li {
+            margin: 10px 0;
+        }
+
+        #search-results li button {
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+
+        #search-results li button:hover {
+            background-color: #e9ecef;
+        }
+
+        #search-results li button mark {
+            background-color: yellow;
+        }
+
+        /* تنسيقات مخصصة للفلترة بالفئات */
+        #filter-btn {
+            background-color: #007bff;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        #filter-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #category-modal .category-modal-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        #category-modal .category-modal-buttons button {
+            margin: 0 5px;
+        }
+
+        #category-modal select {
+            width: 80%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #category-modal select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 3px rgba(0,123,255,.5);
+        }
+
+        #select-all-categories-btn {
+            padding:8px; 
+            font-size:14px; 
+            border-radius:5px; 
+            border:none; 
+            background-color:#007bff; 
+            color:#fff; 
+            cursor:pointer;
+        }
+        #select-all-categories-btn:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="quiz-container" id="quiz-container">
+        <h1>Medical Terminology BEQs</h1>
+        <button id="filter-btn" onclick="openCategoryModal()">Filter Categories</button>
+        <p>Total Questions: <strong id="total-questions"></strong></p>
+        <form id="quiz-form">
+            <!-- الأسئلة ستُحقن هنا -->
+        </form>
+        <button id="shuffle-questions" onclick="shuffleQuestions()">Shuffle Questions</button>
+        <button id="shuffle-options" onclick="shuffleAllOptions()">Shuffle Options</button>
+        <button id="show-result" onclick="showResult()">Show Result</button>
+        <button id="reset-quiz" onclick="resetQuiz()">Reset Quiz</button>
+        <div id="result"></div>
+    </div>
+    
+    <!-- زر التمرير العائم -->
+    <div class="floating-button-container">
+        <button id="scroll-button" class="floating-button" onclick="handleScrollButton()" title="Scroll between answered and bottom">↓</button>
+        <button id="jump-button" class="floating-button" onclick="openJumpModal()" title="Search Questions">🔍</button>
+    </div>
+
+    <!-- مربع الحوار لإعادة الضبط -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to reset the quiz?</p>
+            <button class="modal-button yes" onclick="confirmResetQuiz()">Yes</button>
+            <button class="modal-button no" onclick="closeResetModal()">No</button>
+        </div>
+    </div>
+
+    <!-- مربع حوار البحث -->
+    <div id="jump-modal" class="modal">
+        <div class="modal-content">
+            <p>Enter question number or search term:</p>
+            <input type="text" id="jump-input" placeholder="keyword">
+            <button class="modal-button" onclick="jumpToQuestion()">Go</button>
+            <button class="modal-button no" onclick="closeJumpModal()">Close</button>
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <!-- مربع حوار اختيار الفئات -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <p>Select Categories:</p>
+            <select id="category-filter" multiple></select>
+            <div class="category-modal-buttons">
+                <button id="select-all-categories-btn">Select/Unselect All</button>
+                <button class="modal-button yes" onclick="applyCategoryFilter()">OK</button>
+                <button class="modal-button no" onclick="closeCategoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let quizData = [
+  {question: "<span style='color: darkred;'>September 2016 - Question 172</span> Effective health counseling skills are a critical component of meeting the educational needs of patients and families and providing expert coaching and guidance for people who are managing diabetes on a daily basis. Health counseling includes skills such as effectively providing information, counseling patients about available options, and helping them make well-informed decisions through a client-centered approach. A positive interaction between the clinical nurse specialist (CNS) and the patient can have a positive effect on diabetes management. The CNS can help to make the interaction positive by showing sensitivity to the patient and by having empathy and understanding of the patient's feeling, which will also enhance patient satisfaction. Another approach to improving adherence is to establish a therapeutic contract with the patient in which the patient and provider work together to set goals, assign responsibilities, and set a date for attaining the goal. Research has shown that positive lifestyle change for people with diabetes is facilitated by long-term, collaborative relationships with healthcare providers. Further, long-term follow-up with regular reinforcement is most effective for sustaining change in diet and physical activity, which have been identified as the first and the second most difficult behaviors for people with diabetes to change. The passage is mainly about ..........", options: ["providing guidance for CNS", "developing health care providers' skills", "encouraging lifestyle change in diabetics", "attending to educational needs of diabetics"], answer: 2},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 173</span> Based on the presented information while counseling, CNS must consider the ..........", options: ["collaboration with other healthcare providers and consolers", "patient's co-morbid conditions", "patient's level of comprehension", "importance of psychological and environmental factors"], answer: 3},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 174</span> A client-centered approach is based on ..........", options: ["understanding the patients' needs", "studying diseases such as diabetes", "emphasizing education of CNSs", "working together to achieve the set goals"], answer: 0},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 175</span> The word 'adherence' refers to the ..........", options: ["understanding of diabetic patients' living condition", "sensitivity to life style changes", "empathy for diabetic patients", "interaction between patients and care providers"], answer: 3},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 176</span> One area of difficulty experienced by diabetic patients is ..........", options: ["having the desire for self-learning", "making lifestyle changes and maintaining them", "cooperating with healthcare providers", "having sympathy for the position of CNSs"], answer: 1},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 177</span> Bilateral damage to the brain causing loss of memory is called ..........", options: ["amnesia", "dysphagia", "analgesia", "paraplegia"], answer: 0},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 178</span> Displacement of the heart to the right is termed ..........", options: ["ectocardia", "sinistrocardia", "bradycardia", "dextrocardia"], answer: 3},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 179</span> Unable to cope with his son's death, he ended up with a severe depression and died of this ..........", options: ["commitment", "impediment", "bereavement", "concealment"], answer: 2},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 180</span> When the human body is affected by an infection, it will release antibodies to fight the germs, so it can return to its natural ..........", options: ["dilemma", "equilibrium", "prevalence", "recruitment"], answer: 1},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 181</span> The main characteristics of research is always directed towards the solution of a problem and is based on .......... and observational evidence.", options: ["eventual", "mythical", "trivial", "empirical"], answer: 3},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 182</span> Drug .......... is a very important issue to be considered before using that drug.", options: ["Animate", "Safety", "Beneath", "Chamber"], answer: 1},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 183</span> This medicine is not .......... to be used in elderly patients.", options: ["Glided", "Hinged", "Permitted", "Retarded"], answer: 2},
+
+  {question: "<span style='color: darkred;'>September 2016 - Question 184</span> This powder is .......... Soluble in water.", options: ["Warmly", "Twistingly", "Steely", "Poorly"], answer: 3},
+  
+    {question: "<span style='color: darkred;'>March 2017 - Question 172</span> Read the following passage carefully and by selecting the one item -a,b,c, or d- appropriately complete the statements which follow. Then mark your answer sheet.<br/><br/>The prevalence of asymptomatic microscopic hematuria in adults ranges from 0.19 to 21 percent. The range is wide because of differing definition of clinically significant microscopic hematuria and varying ages of the study populations. Urine normally contains a few red blood cells, and microscopic hematuria generally is defined as one to 10 red blood cells per high-power field of urine sediment. The American Urological Association (AUA) defines clinically significant microscopic hematuria as three or more red blood cells per high-power field on microscopic evaluation of urinary sediment from two of three properly collected urinalysis specimens. Each laboratory, however, establishes its own thresholds based on the method of detection used and in reference to healthy persons as controls. Urine dipstick evaluation may be misleading because it lacks the ability to distinguish red blood cells from myoglobin or hemoglobin. Therefore, a positive finding of microscopic hematuria on urinary dipstick testing required follow-up examination by microscopic technique to confirm the presence of red blood cells. Microscopic hematuria, unlike gross hematuria, is often an incidental finding but may be associated with urologic malignancy in up to 10 percent of adults. Despite the risk, result of recent study revealed that 39 to 90 percent of persons with microscopic hematuria on screening urinalysis received no follow-up testing. Microscopic hematuria presents a challenging clinical scenario for family physicians.<br/><br/>A follow-up examination by microscopic technique may be needed to...........", 
+    options: ["confirm the presence of myoglobin or hemoglobin","confirm the presence of red blood cells","disprove the results of previous findings","ignore the presence of any malignancies"], 
+    answer: 1 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 173</span> The significance of microscopic hematuria is determined...........", 
+    options: ["on the basis of one properly collected specimen","through evaluation of urinary sediment","by urologists using their own criteria","by two or three urologists"], 
+    answer: 1 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 174</span> The underlined word 'thresholds' in line 7 can best be substituted by...........", 
+    options: ["intensity levels","malignant signs","criteria","control"], 
+    answer: 2 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 175</span> According to the passage...........", 
+    options: ["it is a very difficult task to distinguish red blood cells from myoglobin","one properly collected urinalysis specimen never reveals a malignancy","microscopic hematuria is often a symptom of malignancy in the urinary system","microscopic hematuria could be a challenge for family physicians"], 
+    answer: 3 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 176</span> All of the following statements are true EXCEPT...........", 
+    options: ["Urine normally contains 10 red blood cells per high-power field of urine sediment.","The wide range of hematuria in adults is due to differing definition for significant hematuria.","Hematuria refers to cases which involve more than normal numbers of blood cells in the urine.","Hematuria could be a sign of some malignancy."], 
+    answer: 0 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 177</span> Several small pillows should be available for placing under the curves of the ........... to prevent remolding or cracking of the plaster and to provide adequate support of the patient.", 
+    options: ["cast","conduit","cortex","chamber"], 
+    answer: 0 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 178</span> Once it was believed that Ebola would become a ........... disease affecting persons over a wide geographical area.", 
+    options: ["pandemic","endemic","epidemic","homodemic"], 
+    answer: 0 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 179</span> Lupus is characterized by ........... signs and symptoms altering between periods of activity and inactivity.", 
+    options: ["transient","permanent","intermittent","everlasting"], 
+    answer: 2 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 180</span> Discomfort or burning with urination, usually felt in the tube that carries urine out of the bladder is called ...........", 
+    options: ["oliguria","dysuria","hematuria","bacteriuria"], 
+    answer: 1 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 181</span> A collection of pus in the space between the lung and the inner surface of the chest wall is called ...........", 
+    options: ["glycosuria","emphysema","myxedema","empyema"], 
+    answer: 3 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 182</span> In light of recent medical ..........., women with noninvasive breast cancer live as long as other women.", 
+    options: ["stagnations","malfunctions","breakdowns","accomplishments"], 
+    answer: 3 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 183</span> Health authorities should develop better policies to ........... workplace health and safety hazards.", 
+    options: ["manage","elevate","approve","receive"], 
+    answer: 0 },
+
+    {question: "<span style='color: darkred;'>March 2017 - Question 184</span> A suitable strategy to ........... sun-damaged skin is to avoid direct sunlight and use special sun-care products?", 
+    options: ["deteriorate","degenerate","revitalize","regain"], 
+    answer: 2 },
+    
+    {question: `<span style='color: darkred;'>September 2019 - Question 172</span> The investigation of the origin of health and disease brings understanding of some of the underlying mechanisms, an opportunity to optimize fetal and early childhood on both individual and societal levels, and hope for prevention, or at least mitigation, of the consequences of adverse environments. In early childhood, there are protective effects of the presence of nurturing adult caregivers, as their response to stress is better regulated than in children who lack nurturing caregivers. Children whose parents are less nurturing but were themselves raised by more nurturing caregivers still enjoy the benefit of more appropriate responses to stress and perhaps decreased frequency of some adult diseases. Further, language-rich environments appear to enhance linguistic abilities, which optimize academic outcomes. Optimizing children’s physical, psychological, and academic health through good nutrition, nurturing caregiving, and high volume exposure to quality language seems a modest ambition with potentially tremendous individual and societal benefits. 
+    The nature-nurture argument regarding the origin of health and disease seems to be coming to a neutral closure. Nature provides the underpinnings of genetic endowment. However, it is very likely that protections for health, disease, and developmental constitution be improved through mechanisms of organogenesis, neuroendocrine alterations, and epigenetics. Moreover, it is becoming clear that nurture, understood as environmental influences, includes the prenatal, fetal, early childhood, and previous generation environments, all of which may influence the nature of the individual child, entire generations, and subsequent generations.<br><br> The main purpose of the writer in the passage is to ____.`, options: ["Imply that altering environmental influences are necessary", "Discuss the role of poor nutrition and care giving", "Justify the role of language in healthy children", "Explain the role of nature and nurture in protecting health"], answer: 3},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 173</span> The underlined word 'their' in paragraph 1 refers to ____.", options: ["Nurturing caregivers", "Nurturing parents", "Poorly nurtured children", "Well-nurtured children"], answer: 0},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 174</span> The main purpose of the writer for mentioning language-rich environments is to ____.", options: ["Highlight the role of language in mental well-being", "Explain that exposure to language is vital for academic studies", "Discuss that quality language could help protect against diseases", "Argue that nurturing parents would benefit language"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 175</span> It is stated in the passage that organogenesis ____.", options: ["Mitigates body development", "Helps disease prevention", "Increases disease frequency", "Alters genetic characteristics"], answer: 1},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 176</span> The writer most probably believes ____.", options: ["Environmental factors have a determining role", "Epigenetics will help nature to overcome nurture", "Nature vs. nurture argument is unlikely to resolve", "Nature plays a more important role than nurture"], answer: 0},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 177</span> The suppression of various parameters of immune function is not always harmful, nor is the ____ always beneficial.", options: ["Inhibition", "Evasion", "Enhancement", "Impediment"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 178</span> A certain abatement or ____ of the fever takes place, with or without sweating, but there is no true intermission or interval of absolute apyrexia.", options: ["Escalation", "Eruption", "Remission", "Relapse"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 179</span> There is no evidence that fatty foods, sweets, or chocolate cause or ____ acne.", options: ["Promulgate", "Inundate", "Aggravate", "Mandate"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 180</span> A disease caused by the effects of treatment is referred to as ____.", options: ["Contraindicated", "Pathogenic", "Iatrogenic", "Potentiated"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 181</span> Patients suffering from dysgeusia may complain of their impaired ____.", options: ["Temper", "Vision", "Digestion", "Taste"], answer: 3},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 182</span> Patients are advised to avoid caffeine, smoking, and alcohol which ____ the symptoms of gastric ulcers.", options: ["Intensify", "Alleviate", "Obstruct", "Contain"], answer: 1},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 183</span> Physical exercise, if sufficiently intensive and regular, can ____ the various phenomena of aging such as the decrease in muscle mass.", options: ["Overact", "Overwhelm", "Overuse", "Override"], answer: 1},
+
+    {question: "<span style='color: darkred;'>September 2019 - Question 184</span> Unresolved legal and ethical issues impose considerable ____ on the exchange of medical records in electronic form between care providers.", options: ["Solutions", "Constrains", "Premiums", "Encouragements"], answer: 1},
+    
+    { question: "<span style='color: darkred;'>September 2020 - Question 169 - Vocabulary </span> Some doctors' handwriting is so bad that their patients have difficulty reading their ..............", options: ["jurisdictions", "prescriptions", "commitments", "achievements"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 170</span> The patient was about to pass away as the doctor made a/an ............... mistake by taking a wrong decision.", options: ["lethal", "immortal", "moral", "eternal"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 171</span> The potential ............ of angioplasty may include coronary artery dissection and rupture, cardiac tamponade and myocardial infarction.", options: ["convulsions", "complications", "conceptions", "complements"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 172</span> There are many physical and emotional disorders which heal and do NOT really require any medical ............", options: ["integration", "admission", "segmentation", "intervention"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 173</span> In the age of nanotechnology, physical examination still remains of ........... importance in diagnosis of aortic stenosis.", options: ["trivial", "vicious", "pivotal", "transient"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 174</span> A condition in which the patient is characterized by a defect or loss of power of expression by speech is termed as ........", options: ["aphagia", "dyspepsia", "aphasia", "ataxia"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 175</span> The drooping and downward displacement of the eyelid due to inaccurate Botox injection is diagnosed as ...........", options: ["blepharodynia", "blepharoptosis", "blepharitis", "blepharorrhaphy"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 176</span> The surgeon said the patient had to undergo ............ operation to remove the very small tumor in his skull.", options: ["craniocentesis", "septocentesis", "pleurectomy", "pneumectomy"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 177</span> Surgical attachment of the urinary bladder to the abdominal wall or to other supporting structures is referred to as ..........", options: ["tracheotomy", "pachydactyly", "arthrodesis", "cystopexy"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 178</span> Congenital .......... can result from a failure of the lungs to expand completely.", options: ["atelencephalia", "pulmolith", "tracheotomy", "atelectasis"], answer: 3 },
+
+    // Reading Comprehension - Passage 1
+    { question: "<span style='color: darkred;'>September 2020 - Question 179 - Reading Comprehension - Passage 1 </span> <b>Passage: Bone is in constant turnover. It atrophies when not used, and hypertrophies when stressed...</b> Based on the passage, which of the following items is true about bone?", options: ["Atrophy of bone happens in a constant manner.", "Hypertrophy is observed when bone cells are new.", "Stress leads to bone excessive growth.", "Stress causes bone cell atrophy."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 180</span> What can be implied from the paragraph about bone mass?", options: ["Bone mass growth is due to resorption.", "Production of bone mass causes its overall diminish.", "The overall increase of bone mass is age-dependent.", "Resorption and production decrease after the age of 35."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 181</span> Which of the following is true about the characteristics of articular cartilage?", options: ["Generating new articular cartilage is a constant process.", "Humans have failed to reproduce articular cartilage so far.", "In the presence of synovial fluid, the friction is doubled.", "Constant friction causes shock absorbing in the cartilage."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 182</span> According to the paragraph, adulthood leads to .............", options: ["termination of articular cartilage production", "regeneration of articular cartilage", "further production of bone mass", "easier replacement of articular cartilage"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 183</span> Each muscle’s function determines the .............", options: ["tissue mass in the human body", "type of structural units in muscle fiber", "arrangements of muscle fibers", "ability to generate new articular cartilage"], answer: 2 },
+
+    // Reading Comprehension - Passage 2
+    { question: "<span style='color: darkred;'>September 2020 - Question 184 - Reading Comprehension - Passage 2 </span> <b>Passage: Constitutional laws of some countries require employers to provide adequate safety precautions and regulations. Workers in medical laboratories are exposed to many dangers, not only from infected material but also from the dangerous compounds and apparatus which they use as a daily routine...</b> Based on the passage, which of the following can be inferred?", options: ["Workers in medical laboratories are only exposed to hazards from instruments in use.", "Safety precautions are beneficial for both the laboratory staff and others involved.", "Protective clothing can be removed by the personnel while working in the laboratories.", "The workers in a laboratory usually clutter up the sink when using dirty glassware."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 185</span> <b>Passage: Constitutional laws of some countries require employers to provide adequate safety precautions and regulations...</b> Which of the following statements is NOT mentioned as a safety precaution?", options: ["Limited use of apparatus by the workers in the laboratory", "Using protective clothing while working in the laboratory", "The manager of the laboratory must be informed of any accident occurring there.", "The staff must take off their working clothing before leaving the laboratory."], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 186</span> <b>Passage: Constitutional laws of some countries require employers to provide adequate safety precautions and regulations...</b> What does the passage imply?", options: ["Safety regulations and laws will sometimes lead to frequent accidents in the laboratory.", "Observing safety precautions and preventative measures need no specific knowledge.", "The frequency of unnecessary accidents in the laboratory is due to the ignorance of the person in charge.", "Some accidents can be prevented if the staff use their common sense."], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 187</span> <b>Passage: Constitutional laws of some countries require employers to provide adequate safety precautions and regulations...</b> Which of the following is the best reference for the underlined word 'premises'?", options: ["Laboratory", "Protective clothing", "Precautions", "Dirty sink"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 188</span> <b>Passage: Constitutional laws of some countries require employers to provide adequate safety precautions and regulations...</b> The author argues against a messy sink in the laboratory because...", options: ["It is the best place to locate the dirty glassware.", "It is not in accordance with sanitary principles.", "We may need it in an urgent case of accident.", "The staff need all glassware for their daily use."], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>March 2021 - Question 171</span> The patient complained about excessive and frequent urination after going to bed. His condition was diagnosed as .......... .", options: ["Oliguria", "Anuria", "Nyctalgia", "Nocturia"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 172</span> Excessive amount of fat discharge in fecal matter made him bedridden with the diagnosis of ........ .", options: ["Pyorrhea", "Steatorrhea", "Hematuria", "Hemorrhagia"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 173</span> His degenerated, unstable joint was fixed during .......... surgery.", options: ["Arthrography", "Arthroplasty", "Arthrodesis", "Arthrolysis"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 174</span> Encephalomalacia is a term which is used in case of .......... of the brain.", options: ["Softening", "Drainage", "Discharge", "Atrophy"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 175</span> Some studies show an .......... between the intake of special types of foods and low-grade chronic inflammation.", options: ["Aspiration", "Infection", "Ingestion", "Association"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 176</span> Inflammation is a normal defense mechanism that protects the host from infection and other ....... .", options: ["Contributions", "Intentions", "Insults", "Contents"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 177</span> Physical activity along with caloric restriction appears to be a better approach to losing weight and .......... the weight loss.", options: ["Remaining", "Maintaining", "Contaminating", "Containing"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 178</span> High concordance of celiac disease in identical twins could indicate a genetic .......... for the disease.", options: ["Perforation", "Protrusion", "Precipitation", "Predisposition"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 179</span> Osteoporosis is a multifactorial condition of the skeleton in which skeletal strength is .......... sufficiently so that fracture occurs on minor trauma.", options: ["Seduced", "Confused", "Produced", "Reduced"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 180</span> Advanced health facilities have recently been .......... to large modern hospital leaving the small ones with little services.", options: ["Convicted", "Contacted", "Constricted", "Confined"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 181</span> English Reading Passage 1: Since the beginning of the COVID-19 outbreak, health care providers have been shown more support than they ever had. Yet, attacks on health care have continuously been reported and include incidents linked to the COVID-19 pandemic across the world. This public health emergency has shown that health facilities, medical transport, and patients as well as health care workers and their families can – and do – become targets everywhere. This alarming trend reinforces the need for improved measures to protect health care personnel from acts of violence. Any verbal or physical act of violence, obstruction, or threat, interfering with the access and delivery of such services is defined as attack on health care systems by the World Health Organization (WHO). What is true about the passage?", options: ["The COVID-19 can cause violence among patients.", "The COVID-19 has caused attacks on the families of patients.", "Attacks on health care providers have not stopped during the COVID-19 pandemic.", "Health care providers have continuously attacked COVID-19 patients."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 182</span> What does 'This alarming trend' refer to in the passage?", options: ["The COVID-19 outbreak", "Violence against health workers", "Public health emergency", "Lack of health facilities"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 183</span> 'The bombardment and destruction of a 400-bed facility in Libya' is given in the passage as an example of .......... .", options: ["High rate of violence in Libya", "Adequate control of violence in Libya during COVID-19", "Violence against the provision of health services in Libya", "Constructing a 400-bed facility in Libya"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 184</span> Which of the following is a form of violence against health care workers?", options: ["Not allowing health care workers to have work", "Not allowing health care workers to commute with patients", "Bombarding vehicles carrying COVID-19 samples", "COVID-19 drivers forced to leave their job"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 185</span> In which of the following countries, a legal action will be taken against attacks on health facilities and health care workers?", options: ["The US", "Mexico", "Libya", "India"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 186</span> English Reading Passage 2: Diabetes mellitus (DM) is a chronic disease with a global prevalence that continues to grow and is associated with both a significant individual and public health burden. Lifestyle modifications including medical nutritional therapy remain the cornerstones of successful management of DM, in conjunction with glucose-lowering medications when indicated. In addition, education on the principles of physical activity, on the need for self-monitoring of blood glucose, and on the adjustment of appropriate medications during times of illness, for example, are vital to the person with DM. What is true about diabetes mellitus?", options: ["Diabetes mellitus has already been controlled with recent advances in medicaments.", "Diabetes mellitus is still on the rise in spite of recent advances in medicaments.", "Diabetes mellitus is limited to certain regions owing to recent advances in medicaments.", "Diabetes mellitus has little impact on social health due to recent advances in medicaments."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 187</span> Glucose-lowering medications .......... in treating DM.", options: ["Are to be permanently followed", "Are more important than lifestyle changes", "Should precede nutritional therapy", "Should accompany medical nutritional therapy if necessary"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 188</span> Methods of monitoring blood glucose, and adjusting suitable medications during times of illness .......... .", options: ["Should be done by a medical doctor", "Can be taught to the person with DM", "Is to be performed in health centers", "Is to be excluded from the treatment plan"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 189</span> Certain vitamins and minerals .......... in controlling blood glucose.", options: ["May have a role", "Are of little value", "Should be replaced by insulin", "Cannot be used at all"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 190</span> Inflammation in DM patients .......... .", options: ["Should be avoided at all costs", "Is related to complications", "Is a sign of improvement", "Occurs as part of the treatment process"], answer: 1 },
+    
+    { question: `<span style='color: darkred;'>June 2021 - Question 171</span> 
+    Read the following passage and answer the question:<br>
+    "A global survey on implementation of national infection prevention and control programs by the World Health Organization highlights the urgent need to reduce inequalities in the availability of good hand hygiene and other infection prevention and control measures between high and lower income countries. This is a serious challenge at any time, but COVID-19 has dramatically demonstrated just how important good hand hygiene practices are in reducing the risk of transmission, when used as part of a comprehensive package of preventative measures. Good hand hygiene is also vital in preventing any infections acquired in health care, the spread of antimicrobial resistance, and other emerging health threats. Infection acquired during health care delivery is a major global health problem, but patients in low- and middle-income countries are twice as likely to experience this as patients in high-income countries; the risk in intensive care units, especially among newborns, is between 2 and 20 times higher. One reason for this is that in some low-income countries only 1 in 10 health workers practices proper hand hygiene while caring for patients at high risk of health care-associated infections in ICU - often because they simply do not have the facilities to do so. Lack of financial resources and crumbling infrastructures are key challenges. A 2020 WHO report reveals that globally, 1 in 4 health care facilities do not have basic water services and 1 in 3 lack hand hygiene supplies at the point of care."
+    What does “This” in line 4 refer to?`, options: ["Hand hygiene practices", "COVID-19", "Inequality", "World Health Organization"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 172</span> The global survey by the WHO has shown that .......... .`, options: ["rich individuals follow good hand hygiene practices", "hand hygiene measures are the same in all countries", "low-income families do not consider hand hygiene", "hand hygiene availability differs in various countries"], answer: 3 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 173</span> According to the passage, infection acquired during health care delivery .......... .`, options: ["causes antimicrobial resistance", "doubles in low- and middle-income countries", "is 20 times higher in intensive care units", "is high among newborns in high-income countries"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 174</span> Which of the following is a reason for infections acquired during health care?`, options: ["Health workers' unsuitable hand hygiene", "Lack of ICU facilities", "Low number of health workers", "Health workers’ low income"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 175</span> According to the passage, which of the following is true?`, options: ["Health care workers in low-income countries have hand hygiene facilities", "Health workers lack hand hygiene facilities in some low-income countries", "One fourth of low-income countries lack hand hygiene supplies", "One third of world countries lack basic water services in 2021"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 176</span> Read the following passage and answer the question:<br>
+    "Teaching basic science should be incorporated into a larger concept of progress toward independence than that ‘knowledge is an essential competence’. Educational leaders should be aware that a growing body of evidence supports the teaching of basic science as an essential step in solving complicated or unusual clinical problems, and not be discouraged by the fact that clinicians do not routinely mention the basic science facts that underlie our diagnostic reasoning. Little attention has yet been paid to articulating the role of basic science in teaching therapeutic management, but this author believes that teachers should continue to insist on an understanding of mechanisms as at least as important as epidemiologic studies. We should be aware that students are often still achieving understanding in a setting in which their teachers are focused on action (whether or not understanding is complete). Successful incorporation of science into medical practice through education depends on the effort to make this step an explicit priority."
+    The knowledge acquired in basic science is expected to .......... .`, options: ["find its significance in medical practice", "serve as a marginal competence", "be independent of medical progress", "be a separate entity in medicine"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 177</span> As indicated by evidence, the instruction of basic science is a .......... in medicine.`, options: ["new happening", "superficial task", "redundant work", "significant phase"], answer: 3 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 178</span> The role of basic science in teaching therapeutic management .......... .`, options: ["is to be diminished in future", "has not been well acknowledged", "has been more than it deserves", "is ruled out by new evidence"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 179</span> Instruction in medical settings is said to be more .......... oriented.`, options: ["competence", "knowledge", "concept", "action"], answer: 3 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 180</span> The underlined "this" in the last sentence refers to .......... .`, options: ["understanding", "incorporation", "education", "practice"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 181</span> After a knee surgery, patients may attend physical therapy sessions to .......... the related muscles.`, options: ["relocate", "recollect", "regurgitate", "rehabilitate"], answer: 3 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 182</span> Two major hospitals in the city .......... successfully in finding a suitable drug to stop the spread of HIV.`, options: ["collaborated", "culminated", "collapsed", "collided"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 183</span> Since early days in primary school, my sister wished to .......... a medical career as her job.`, options: ["rescue", "pursue", "replicate", "terminate"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 184</span> The damage caused by COVID-19 is .......... because it brought about huge economic loss, high fatality, and big unemployment.`, options: ["invaluable", "insignificant", "underprivileged", "unprecedented"], answer: 3 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 185</span> When reviewing the human anatomy, it is important to remember that the body is a/an .......... collection of systems with a highly complex structure working together.`, options: ["intricate", "incapable", "compulsory", "supplementary"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 186</span> If the body is not provided with sufficient oxygen, it will .......... and the cells will quickly die.`, options: ["thrive", "cherish", "suffocate", "congregate"], answer: 2 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 187</span> He was coughing up blood. His physician explained that this condition, called .........., is a sign of a serious lung disorder.`, options: ["anosmia", "hemoptysis", "anemia", "dyspnea"], answer: 1 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 188</span> Biliary obstruction, malignancies, and infection may lead to the enlargement of the liver, which is referred to as .......... .`, options: ["nephromegaly", "nephritis", "hepatomegaly", "hepatitis"], answer: 2 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 189</span> Because of symptomatic gallstones, .......... is the recommended treatment for the patient to remove the gall bladder surgically.`, options: ["cholecystectomy", "cholecystostomy", "cystectomy", "cystostomy"], answer: 0 },
+
+    { question: `<span style='color: darkred;'>June 2021 - Question 190</span> To remove the accumulated fluid from the patient's knee, the surgeon performed .......... by puncturing his joint space.`, options: ["arthrodesis", "arthropexy", "arthrorrhaphy", "arthrocentesis"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 171</span> In cancer patients, complete disappearance of all detectable signs and symptoms of the disease can …… complete remission.", options: ["confirm", "exacerbate", "refute", "exaggerate"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 172</span> The psychologist advised the patient to give up ……… which made him think about nonsense; she asked the client to pay more attention to his family instead.", options: ["contributions", "preoccupations", "prominences", "competencies"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 173</span> Creating a pleasant work environment is ……… if we want to enhance the workers’ productivity and increase our revenue.", options: ["indispensable", "virulent", "insignificant", "futile"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 174</span> As the physician was not able to provide valid and reliable data on the case, the results of his research were ……… .", options: ["implemented", "aggregated", "approved", "disputed"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 175</span> Although an ordinary headache is not hazardous, one ought to see a doctor in case it ……… .", options: ["terminates", "diminishes", "relinquishes", "persists"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 176</span> He suffers his parents’ ……… about the appropriate ways of dealing with his health problems; they need to attend some training sessions.", options: ["recognition", "preservation", "competence", "ignorance"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 177</span> Preventive measures should be taken to block the unexpected ……… of the stressful interventions done by physicians in their private offices.", options: ["consequences", "equilibrium", "prophylaxis", "tranquility"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 178</span> This is an unknown disease, so no physician can ……… what will happen to the patient in the coming years.", options: ["alleviate", "abolish", "anticipate", "resume"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 179</span> He is suffering from ……; the wall of his stomach is softened.", options: ["gastrolysis", "gastromalacia", "gastroschisis", "gastroptosis"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 180</span> When the caliber of a vessel is narrowed, the condition is called ……… .", options: ["angiostenosis", "angiosclerosis", "angiopoiesis", "angioparesis"], answer: 0 },
+    
+    { 
+        question: `<span style='color: darkred;'>September 2021 - Question 181</span> Cancer patients have been treated with genetically engineered drugs for the first time in Germany. Genetically engineered killer cells are to assist in the fight against cancer. The technique is as painless as a normal infusion. The cancer patients receive an injection of killer cells. These immune cells, which attack the tumor, have been previously modified in the laboratory. In order to increase their effectiveness, they are bombarded with minute gold spheres which carry special genetic information. During this process, the spheres penetrate the nucleus of the defense cells, which are then administered to the patient. "Killer cells should attack and consume the tumor," explains the Berlin-based molecular biologist Professor Burghardt Witting. Expectations remain modest as this is still a purely experimental therapy for fatally ill cancer patients who no longer respond to any other forms of treatment. Nevertheless, "it was high time that we left the laboratory and went to the patients, because genetic therapy is the only chance to triumph over cancer." This passage is mainly about …… .`, 
+        options: ["cancer patients’ immune system", "cancer research in different parts of the globe", "a new method used for normal infusions", "a technique used hopefully to treat cancer"], 
+        answer: 3 
+    },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 182</span> As mentioned in this passage, the ……… are modified in the laboratory.", options: ["malignant tumors", "benign tumors", "cancerous cells", "killer cells"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 183</span> The method mentioned in the passage is ……… .", options: ["widely used at present in laboratories", "just in its experimental stage", "believed to be surely effective", "commonly practicable for all cancers"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 184</span> The underlined expression 'this process' refers to ……… .", options: ["carrying special genetic information", "bombarding the tumor cells with gold spheres", "injecting the cells to the fatally ill cancer patients", "attacking the tumor cells"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 185</span> As explained in the passage, Professor Burghardt Witting believes that ……… .", options: ["fight against cancer should be as painless as a normal infusion", "research on cancer therapy in laboratories is the only way to defeat cancer", "there is no other way to fight against cancer but genetic therapy", "cancer patients are no longer able to escape this fatal illness"], answer: 2 },
+    
+    { 
+        question: `<span style='color: darkred;'>September 2021 - Question 186</span> A great challenge to a sustainable healthcare is currently represented by the advancement of biomedical and digital science and technologies, which, jointly with the demographic trends and the expectations of citizens, are suspected to act to widen the gap between the available resources and the requirements for healthcare. In imaging future healthcare, in fact, some core technology-based components of a more personalized approach to health can be envisaged: the availability of comprehensive electronic health records, the use of biomarker assays including whole genome sequencing at key points in life course, and the continuous self-monitoring of lifestyle parameters using mobile connectivity systems. These components can be considered as a number of inputs and outputs comprising a system that aims to achieve better health for individuals and populations, through delivering more effective preventive and therapeutic interventions. The inputs are the data themselves from multiple sources, and knowledge abstracted from these that will be accrued by both health care providers and citizens themselves. The outputs of such Big Data will be the stratification of populations on the basis of their risk of particular diseases and/or their responsiveness to particular therapeutic interventions. The challenge our healthcare is facing today is …… .`, 
+        options: ["yet to be recognized by the future healthcare professionals", "resolved by the current developments in science and technology", "inherited from the difference between resources and requirements", "linked to recent developments in science and technology"], 
+        answer: 3 
+    },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 187</span> A more personalized approach to health ……… .", options: ["is not consistent with technology-based healthcare system", "is likely to take place in the future healthcare provision systems", "widens the gap between the existing resources and healthcare needs", "has nothing to do with whole genome sequencing at key points in life"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 188</span> The underlined word ‘inputs’ refers to the data ……… delivered by care providers and citizens.", options: ["comprising a system", "for therapeutic and preventive interventions", "from multiple stratified populations", "from sources in addition to those"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 189</span> The stratification of population for health reasons would ……… .", options: ["use the Big Data as the source", "reject the knowledge of the risk of particular diseases", "rely on citizens disregarding multiple data sources", "refute the data provided by care providers and citizens"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 190</span> The passage mainly discusses the ……… .", options: ["risk of specific diseases and people’s reactions to interventions", "whole genome sequencing at key points in life course as available resources", "availability of comprehensive electronic health records collected in a Big Data", "challenges of the future healthcare system and their possible solutions"], answer: 3 },
+    
+    // Vocabulary Questions - English 1 & 2
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 171</span> Without the proper equipment to protect their hands, workers are likely to develop skin ……………… while being exposed to uneven surfaces.",
+        options: ["abrasion", "absorption", "conversion", "contraction"],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 172</span> The condition in which the retina gets separated from the pigment epithelium behind it, or new blood vessels grow on its surface is referred to as retinal ……………… .",
+        options: ["debridement", "detachment", "penetration", "perforation"],
+        answer: 1
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 173</span> The patient’s condition has ………… the physicians; they cannot find any clue to solving the problem.",
+        options: ["baffled", "convinced", "endorsed", "assassinated"],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 174</span> The nurse we were looking for, was in a room ……………… the surgical hall.",
+        options: ["devoid of", "deprived of", "replete with", "adjacent to"],
+        answer: 3
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 175</span> He will need to compensate for his hearing ……………… by using his other senses.",
+        options: ["impairment", "improvement", "amplification", "enhancement"],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 176</span> Severe hearing loss should be treated soon before it can ……………… one’s academic life.",
+        options: ["impede", "replicate", "rejuvenate", "invigorate"],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 177</span> The patient was ……………… a wheelchair following a severe fracture in her pelvis.",
+        options: ["confronted with", "handicapped by", "confined to", "loaded with"],
+        answer: 2
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 178</span> The obstetrician diagnosed the neonate’s weird appearance as ………………, a congenital absence of pigment in the skin, hair and the eyes.",
+        options: ["albinoidism", "albinism", "melasma", "melanoma"],
+        answer: 1
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 179</span> One of the complications of Covid-19 is ………………, i.e., the inability to track one or all smells.",
+        options: ["cacosmia", "anosmia", "cacomelia", "anaphia"],
+        answer: 1
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 180</span> In ………………, the surgeon is supposed to remove the stone formed in the gall bladder.",
+        options: ["cystolithectomy", "cystostomy", "cholecystolithectomy", "cholecystotomy"],
+        answer: 2
+    },
+
+    // Reading Questions - English 3 & 4
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 181</span> The writer would like the future physicians to ……………… to policymakers and legislators.",
+        options: [
+            "introduce the consequences of climate change",
+            "use climate change as an excuse to explain medical issues",
+            "evade presenting the health implications of climate changes",
+            "promote their medical knowledge by offering the climate change"
+        ],
+        answer: 0,
+        text: `The climate and health education will empower future physicians as advocates who can represent the health implications of climate change to policymakers and legislators. By presenting the health, including mental health, basis for climate change mitigation and adaptation measures, physicians can help encourage policies that safeguard the health of patients. Climate change worsens existing health inequities. For example, urban heat islands disproportionately affect communities of color. Disproportionate exposure to extreme heat in these urban settings has been linked to the historical and structurally racist housing policy known as “redlining”. Physicians can advocate policies that dismantle structural injustice, protect patients, and avoid worsening health inequities among at-risk populations. As such, content on climate change should be considered in designing curricula to address the large burden of climate-associated conditions that occur in at-risk, vulnerable, disadvantaged, medically complex, or special populations. These principles can be used to build foundational and specialized educational formats and experiences for residency training.`
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 182</span> Physicians can refer to issues like mental health to encourage policy makers to ……………… .",
+        options: [
+            "adopt health-friendly policies for the climate",
+            "procure health facilities for health centers",
+            "mitigate safeguarding the health of patients",
+            "increase health budget irrespective of climate condition"
+        ],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 183</span> “Redlining” is used to refer to the ……………… caused by disproportionate exposure to extreme heat.",
+        options: [
+            "climate-associated conditions",
+            "justice in medicine",
+            "pollution-free communities",
+            "racial inequity"
+        ],
+        answer: 3
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 184</span> According to the writer, the physicians are recommended to ……………… .",
+        options: [
+            "have a role in reducing health inequities",
+            "ignore health injustice in favor of the science",
+            "get directly involved in policymaking and legislation",
+            "ask their patients to consider new policies for climate change"
+        ],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 185</span> One way suggested to avoid unusual climate change is to ……………… .",
+        options: [
+            "include content on climate change in medical curricula",
+            "rely on the policymakers’ experience in residency training",
+            "protect patients by teaching health inequities in communities",
+            "refer to legislations for new ways to alleviate structural injustice"
+        ],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 186</span> The writer states that ……………… is a self-serving excuse.",
+        options: [
+            "the strong suspicion indicated before 1960",
+            "the reason given for fewer returns after 1960",
+            "low investment in medicine before 1960",
+            "too much money spent on medical projects after 1960"
+        ],
+        answer: 1,
+        text: `Regarding the money invested in medicine and the resultant medical achievements, something has gone badly wrong. The money poured into scientific medicine since 1960 has provided nothing like the returns provided by the much smaller sums spent in the 25 years before that. The usual easy explanation is that the problems have become much more difficult. That may be true, but I have a strong suspicion that it is merely a self-service excuse.`
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 187</span> The author of this reading selection believes that ……………… .",
+        options: [
+            "more accomplishments in medicine are due to more investment",
+            "before 1960, medical scientists confronted more medical challenges",
+            "medical scientists have avoided accounting for the investment in medicine",
+            "despite spending more money, medicine has achieved less after 1960"
+        ],
+        answer: 3
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 188</span> The writer maintains that ……………… .",
+        options: [
+            "more investment in medicine has failed to bring about better outcome",
+            "more objective therapeutic success results from more investment in medical projects",
+            "increases in the costs of the medical system have led to patients’ dissatisfaction",
+            "both advocates and opponents of scientific medicine have made mistakes"
+        ],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 189</span> For people over 40, according to the author, ……………… .",
+        options: [
+            "life expectancy has failed to increase",
+            "living has become much more difficult and expensive",
+            "hope for a longer life has already been achieved",
+            "documented, technologically assisted death is uncommon"
+        ],
+        answer: 0
+    },
+    {
+        question: "<span style='color: darkred;'>November 2021 - Question 190</span> As for the accomplishments of scientific medicine after 1960, the tone of the writer in this reading selection is ……………… .",
+        options: [
+            "partly indifferent",
+            "rather pessimistic",
+            "strongly supportive",
+            "quite impartial"
+        ],
+        answer: 1
+    },
+    
+    {
+        question: `<span style='color: darkred;'>March 2022 - Reading Passage 1</span><br>
+        <b>Passage:</b><br> 
+        Schizophrenia is often confused with multiple personality disorder yet it is quite distinct from it. Schizophrenia is one of the more common disorders, considerably more common than multiple personality disorder. The term “schizophrenia” is composed of roots which mean “a splitting of the mind,” but it does not refer to a division into separate and distinct personalities, as occurs in the multiple personality disorders. Instead, schizophrenic behavior is generally characterized by illogical thought patterns and withdrawal from reality. Schizophrenics often live in a fantasy world where they hear voices that other people cannot hear, often voices of famous people. Schizophrenics tend to withdraw from families and friends and communicate mainly with the “voices” that they hear in their minds.<br>
+        It is common for the symptoms of schizophrenia to develop during the late teen years or early twenties, but the causes of schizophrenia are not well understood. It is believed that heredity may play a part in the onset of schizophrenia. In addition, abnormal brain chemistry also seems to have a role; certain brain chemicals, called neurotransmitters, have been found to be at abnormal levels in some schizophrenics.<br><br>
+        Which of the following is true about schizophrenia and multiple personality disorder?`,
+        options: ["They are highly similar", "One is a psychological disorder, while the other is not", "Many people mistake one for the other", "Multiple personality disorder occurs more than schizophrenia"],
+        answer: 2
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 172</span> Which is NOT true about schizophrenia, according to the passage?`,
+        options: ["It is characterized by separate and distinct personalities.", "It often causes withdrawal from reality.", "Its symptoms include illogical patterns.", "Its victims tend to hear voices in their minds."],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 173</span> According to the passage, schizophrenics -------------- their families?`,
+        options: ["are quite friendly with", "tend to keep a distance from", "have a unique ability to understand", "communicate openly with"],
+        answer: 1
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 174</span> The author maintains that ------------------------.`,
+        options: ["schizophrenia is not a disorder", "the schizophrenic victims are limited to those with genetic transmission", "abnormal brain chemistry is one of the possible causes of schizophrenia", "symptoms of schizophrenia do not develop before twenties"],
+        answer: 2
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 175</span> It can be inferred from the passage that families of schizophrenics ------------------------.`,
+        options: ["are likely to share the burden of the ailment", "can help the victims to recover by sending them to institutes", "are forced to keep away from the treatment of the victims", "tend to be hardly affected by the disorder"],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Reading Passage 2</span><br>
+        <b>Passage:</b><br>
+        In addition to eye movements, considerable research has been done on pupil dilation. In the fifteenth and sixteenth centuries in Italy, women used to put drops of belladonna (which literally means “beautiful woman”) into their eyes to enlarge the pupils so that they would look more attractive. Contemporary research seems to support the intuitive logic of these women; dilated pupils are in fact judged to be more attractive than constricted pupils.<br>
+        In one study, photographs of women were retouched. On one set the pupils were enlarged, and in another they were made smaller. Men were then shown the photographs and asked to judge the women’s personalities. The photos of women with small pupils drew responses such as cold, hard, and selfish; those with dilated pupils drew responses such as feminine and soft. The male observers, however, could not verbalize the reasons for the different perceptions. Pupil dilation and reactions to change in the pupil size of others both seem to function below our level of awareness.<br>
+        Pupil size is also indicative of one’s interest and level of emotional arousal. One’s pupils enlarge when one is interested in something or when one is emotionally aroused. Perhaps we judge dilated pupils as more attractive because we judge the individual’s dilated pupils indicative of an interest in us.<br><br>
+        Today’s studies find a ---------- between enlarged pupils and attractiveness.`,
+        options: ["ambiguous relationship", "positive correlation", "harmful link", "potential risk"],
+        answer: 1
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 177</span> Interest in manipulating pupils for beauty reasons ------------ .`,
+        options: ["has been a recent happening", "is no longer common", "is socially disapproved", "has a long history"],
+        answer: 3
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 178</span> The underlined word “set” refers to --------- .`,
+        options: ["a group of women", "a group of men", "a group of photographs", "a group of researchers"],
+        answer: 2
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 179</span> What does “the photographs of women were retouched” mean?`,
+        options: ["People under study touched these photographs again.", "Another study was carried out on these photographs.", "Other photographs were taken of women in one study.", "In one study these photographs were changed slightly."],
+        answer: 3
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 180</span> According to the passage why couldn’t the observers give reasons for their different perception of the personality of women in the photos?`,
+        options: ["Judgments on personalities are too difficult to offer on the basis of photos.", "The observers did not consciously know why they felt so.", "Perception tends to happen below the level of our awareness.", "Reacting to personalities can rarely be verbalized."],
+        answer: 1
+    },
+    // Vocabulary & Medical Terminology
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 181</span> Medical advances have not been achieved easily. Rather, there have been --------long-lasting efforts by many scientists all over the world.`,
+        options: ["immense", "trivial", "succinct", "concise"],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 182</span> Global warming seems to be the cause of ---------- downpour of rain in certain countries, causing death tolls and huge damage to medical infrastructures.`,
+        options: ["formidable", "invaluable", "affordable", "intangible"],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 183</span> In newly constructed hospitals, the wards for --------- patients should be separate from those for the patients confined to wheelchairs.`,
+        options: ["contemptible", "affluent", "ambulatory", "contemporary"],
+        answer: 2
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 184</span> Unlike people with negative attitudes, those with positive self-concept tend to find ------------ in their level of success.`,
+        options: ["confrontation", "contamination", "condemnation", "contentment"],
+        answer: 3
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 185</span> Under the Covid-19 condition, many children suffer from lack of sufficient ------------- facilities to play and have fun.`,
+        options: ["celestial", "recreational", "susceptible", "detrimental"],
+        answer: 1
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 186</span> Following the operation, the patient’s overall health status has -------------- significantly; unfortunately, he is in a critical condition now.`,
+        options: ["recuperated", "deteriorated", "augmented", "prospered"],
+        answer: 1
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 187</span> The patient presented with --------------- and with the chief complaint that objects appear yellow.`,
+        options: ["xanthopsia", "cyanopsia", "erythroplasia", "melanoma"],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 188</span> The inflammation involving the oral mucous membrane and the tongue is ------------ .`,
+        options: ["stomatoglossitis", "stomatomenia", "stomocephalus", "stomatocace"],
+        answer: 0
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 189</span> Disruption of the normal flora is defined as -------------- .`,
+        options: ["dyskeratosis", "dysbiosis", "dyshidrosis", "dynapen"],
+        answer: 1
+    },
+    {
+        question: `<span style='color: darkred;'>March 2022 - Question 190</span> The pain in the nose is termed ------------.`,
+        options: ["rhinodynia", "rhinocoele", "rhinolalia", "rhinobyon"],
+        answer: 0
+    },
+    
+    // Vocabulary Questions
+    { question: "<span style='color: darkred;'>August 2022 - Question 171</span> After studying the test results, the physician ……… an improvement in the patient’s health condition.", options: ["neglected", "abandoned", "anticipated", "prohibited"], answer: 2 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 172</span> Not only does the Corona virus harm people physically, but it can also have ……… effects on their mental health.", options: ["adverse", "persuasive", "constructive", "benign"], answer: 0 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 173</span> To come to a conclusion, you need to ………… the previous X-rays from the present one.", options: ["distract", "distinguish", "deprive", "refrain"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 174</span> The researchers succeeded to ……… the role of microbes in contagious diseases.", options: ["aggravate", "aggregate", "elucidate", "evaporate"], answer: 2 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 175</span> Probably, the first very significant function of the skin is to prevent the organs against ……… agents that intend to penetrate the body.", options: ["noxious", "tremendous", "meticulous", "notorious"], answer: 0 },
+
+    // Medical Terminology Questions
+    { question: "<span style='color: darkred;'>August 2022 - Question 176</span> He is suffering from ………; the wall of his stomach is softened.", options: ["gastroschisis", "gastroptosis", "gastrolysis", "gastromalacia"], answer: 3 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 177</span> When the caliber of a vessel is narrowed, it is called ………", options: ["angioparesis", "angiostenosis", "angiosclerosis", "angiography"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 178</span> An impairment of speech is called ………", options: ["dysphagia", "dysphoria", "dysphasia", "dyslexia"], answer: 2 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 179</span> The old man is actually ………; that is, he is suffering from the paralysis of the lower limbs.", options: ["quadriplegic", "paraplegic", "monoplegic", "hemiplegic"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 180</span> The physician told him that, according to the test results, he has to undergo ……… surgery to remove the gallbladder.", options: ["cystectomy", "cystostomy", "cholecystostomy", "cholecystectomy"], answer: 3 },
+
+    // Reading Passage 1
+    { question: `<span style='color: darkred;'>August 2022 - Question 181</span> Passage 1: "Helicobacter pylori (H. pylori) is a bacterium living in the lining of the stomach. More than half of the world’s population is infected with H. pylori which causes inflammation of the stomach lining (known as gastritis) and increased production of gastric acid. Nearly everyone who is infected with H. pylori develops gastritis (inflammation of the lining of the stomach), but he/she may not show any symptoms. When there are symptoms, it is known as H. pylori-associated dyspepsia. If you are infected with H. pylori, you are more likely than other people to develop ulcers in the stomach or duodenum. H. pylori infection causes most cases of an uncommon disease called gastric mucosa-associated lymphoid tissue (MALT) lymphoma – a slow-growing lymphoma which starts in the stomach. If the H. pylori infection is treated successfully when the lymphoma is low grade, there is often regression of the lymphoma, meaning that it gets smaller and may even be cured. If H. pylori infection is associated with symptoms, the patients may experience burning pain or discomfort in the upper abdomen below the ribs, indigestion, burping, nausea and/or vomiting, bloating, loss of appetite and feeling full. There are several ways H. pylori can be detected. Your doctor will request the right tests for you, which might include breath test, blood test, stool (poo) sample and endoscopy with tissue biopsy of the stomach lining. Your doctor can advise whether you would benefit from testing and treatment, based on your medical history and background." <br> According to the text, more than 50 percent of the world population have ………`, options: ["gastritis", "dyspepsia", "ulcer", "lymphoma"], answer: 0 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 182</span> According to the text, which of the following statements is true?", options: ["Nearly everyone with H. pylori infection experiences gastric symptoms.", "When H. pylori infection is asymptomatic, it is associated with dyspepsia.", "Those with H. pylori infection will probably experience stomach ulcer.", "H. pylori bacterium inhabits in the first part of the small intestine"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 183</span> According to the text, in the case of MALT, if H. pylori infection is treated on time, ………", options: ["MALT will be present, but it will be asymptomatic", "there is the probability of regression for MALT", "H. pylori symptoms will be successfully eradicated", "the lymphoma changes into a low grade tumor"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 184</span> All of the following characterize H. pylori infection, EXCEPT:", options: ["feeling overfed", "no desire for food", "irritating pain", "sticky gastric mucosa"], answer: 3 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 185</span> According to the passage, once you are infected with H. pylori, ………", options: ["an endoscopy should be performed", "the medical history determines the medical procedure", "the MALT test becomes necessary", "the removal of infected area, as well as the ulcer, is necessary"], answer: 1 },
+
+    // Reading Passage 2
+    { question: `<span style='color: darkred;'>August 2022 - Question 186</span> Passage 2: "Systemically administered corticosteroids are reserved for acute exacerbation or for chronic maintenance therapy in more severely affected individuals. In the latter group of patients, there seems to be a spectrum of steroid effectiveness; some individuals remain symptom-free on small corticosteroid doses, whereas others require relatively high doses for even modest symptom control. A small subset of patients gains little benefit from corticosteroids while remaining responsive to β-adrenergic agonists—that is, they are steroid resistant. The precise mechanisms underlying steroid resistance are unknown but are thought to relate to the manner in which steroids exert their effects at the cellular level. Corticosteroids are transported into nucleus bound to receptors and there they attach to DNA sites that code for cytokine production. Corticosteroid resistance has been related to defect in DNA binding, a decrease in the number of corticosteroid receptor and decreased ligand-receptor affinity." <br> According to the text, bronchial asthma ……… in the airway.`, options: ["is merely an abnormality of smooth muscles", "is a neural deficiency", "has a mediatory role", "is the inflammation of the cells"], answer: 3 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 187</span> It is stated that ……… in the treatment of asthma.", options: ["corticosteroids have a more important role than other medications", "oral administration of corticosteroids is without side effects", "bronchodilators have a primary role", "corticosteroids are used as supplements only"], answer: 0 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 188</span> Which of the following statements is NOT true about the systemic administration of corticosteroids?", options: ["Asthma becomes aggravated.", "The therapy has to be continued.", "The patients are steroid resistant.", "The patients are severely affected."], answer: 0 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 189</span> The underlined word ‘others’ refers to ………", options: ["effects of steroid therapy", "patients receiving steroids", "doses of steroids administered", "symptoms appearing with steroid"], answer: 1 },
+    { question: "<span style='color: darkred;'>August 2022 - Question 190</span> Which of the following is true about the resistance to steroids?", options: ["The exact mechanism of the resistance has to be established.", "Corticosteroids activate cytokine release leading to resistance.", "The resistance is due to an increase number of corticosteroid receptors.", "There is a strong tendency of DNA to bind to steroid receptors."], answer: 0 },
+    
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 171</span> 
+        The concept of health holds different meanings for different people and groups. 
+        These meanings of health have also changed over time. 
+        This change is no more evident than in Western society today when notions of health and health promotion are being challenged and expanded in new ways. 
+        During the 1980s and 1990s, there has been a growing swing away from seeing lifestyle risks as the root cause of poor health. 
+        While lifestyle factors remain important, health is also being viewed in terms of the social, economic, and environmental contexts in which people live. 
+        This is called the socio-ecological view of health. 
+        The comprehensive socio-ecological view of health was endorsed at the first International Conference of Health Promotion held in 1986 in Ottawa, Canada, 
+        where people from 38 countries agreed and declared that: 
+        <br><br>
+        "The fundamental conditions and resources for health are peace, shelter, education, food, a viable income, a stable ecosystem, sustainable resources, social justice, and equity. 
+        Health improvement requires a secure foundation in these basic requirements (WHO, 1986)."
+        <br><br>
+        It is clear from this statement that the creation of health is about much more than encouraging healthy individual behaviors and lifestyles and providing appropriate medical care. 
+        Therefore, the creation of health must include addressing issues such as poverty, pollution, urbanization, natural resource depletion, social alienation, and poor working conditions. 
+        The social, economic, and environmental contexts that contribute to health creation do not operate separately or independently of each other. 
+        Rather, they are interacting and interdependent, and their complex interrelationships determine the conditions that promote health. 
+        A broad socio-ecological view of health suggests that health promotion must include a solid social, economic, and environmental focus.
+        <br><br>
+        The author of this passage seems to be ------------ about/of the present focus of health, i.e., individuals’ lifestyle.`,
+        options: ["Positive", "Impartial", "Critical", "Indifferent"], 
+        answer: 2 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 172</span> 
+        Promoting healthy individual behaviors and lifestyles is ---------what is needed to create health.
+        <br><br>
+        "Health improvement requires a secure foundation in basic requirements, such as peace, shelter, education, food, and equity."`,
+        options: ["Much more important than", "Only a small part of", "The foundation of", "A broad socio-ecological view of"], 
+        answer: 1 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 173</span> 
+        Health is now considered in terms of social, economic, and environmental settings ------------ lifestyle aspects.
+        <br><br>
+        "The comprehensive socio-ecological view of health involves addressing multiple contextual factors."`,
+        options: ["Irrespective of", "In spite of", "Swinging away from", "As well as"], 
+        answer: 3 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 174</span> 
+        All of the following statements are correct EXCEPT:
+        <br><br>
+        "Health development involves more than providing medical treatment. Poor working conditions can jeopardize health."`,
+        options: ["Health development involves more than providing medical treatment.", "Bad working conditions can also jeopardize health.", "We should blame unhealthy lifestyle choices for poor health.", "Health creation is interconnected by social, economic, and environmental factors."], 
+        answer: 2 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 175</span> 
+        As to the concept of health, ----------.
+        <br><br>
+        "The comprehensive socio-ecological view of health suggests it has evolved throughout time."`,
+        options: ["There is no universally accepted definition", "There is a consensus among individuals", "The older version is more solid than the new one", "It has not evolved throughout the course of time"], 
+        answer: 0 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 176</span> 
+        The primary function of the endocrine system is to keep the body in homeostasis, the body’s internal state of equilibrium that is maintained so that all the body systems can function most effectively. 
+        The endocrine system includes glands that secrete hormones directly into the bloodstream rather than through a duct (exocrine glands). 
+        Thus, the endocrine system comprises a network of ductless glands, which have a rich blood supply that enables the hormones they produce to enter the blood stream and influence body function. 
+        Although the hormones travel throughout the entire body in blood and lymph, they affect only targets that have specific receptors for the hormone. 
+        Once bound to the receptor, the hormone initiates a specific biological effect. Hormones control diverse activities such as growth, metabolism, reproduction, energy level, and sexual characteristics. 
+        Although the nervous system provides many of the same functions as the endocrine system, it is designed to act instantaneously by transmitting electrical impulses to specific body locations. 
+        It is one of the most complicated systems of the body. Nonetheless, the endocrine and nervous systems work together like an interlocking super-system to control many intricate activities of the body.<br><br>
+        According to this passage, ----------------------------.`,
+        options: [
+            "The bodily systems function appropriately even if the body is not in a state of balance",
+            "Hormones monitor body functions through the enzymes produced by the exocrine glands",
+            "Hormones can impact the function of an organ only if they are bound to their specific receptors",
+            "The endocrine and nervous systems act antagonistically"
+        ],
+        answer: 2
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 177</span> 
+        “It” in line 11 refers to the --------------.<br><br>
+        The endocrine and nervous systems work together like an interlocking super-system to control many intricate activities of the body.`,
+        options: [
+            "Endocrine system",
+            "Nervous system",
+            "Nervous system function",
+            "Endocrine system function"
+        ],
+        answer: 1
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 178</span> 
+        In this passage, the author implies that the hormones produced by the endocrine system ------------.<br><br>
+        Hormones regulate diverse body functions by interacting with specific receptors.`,
+        options: [
+            "Invade specific body target cells",
+            "Mediate changes in all target cells",
+            "Bind unselectively to the receptors",
+            "Regulate a wide range of body functions"
+        ],
+        answer: 3
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 179</span> 
+        In this reading passage, the author mentions the nervous system in order to --------.<br><br>
+        The nervous system and endocrine system are closely linked to control many body functions.`,
+        options: [
+            "Differentiate between the nervous system and the endocrine system",
+            "Emphasize that the nervous and endocrine systems are closely linked",
+            "Demonstrate the merits of the nervous system over the endocrine system",
+            "Enumerate the similarities between the nervous and endocrine systems"
+        ],
+        answer: 1
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 180</span> 
+        According to the passage, which of the following is TRUE about the functions of the endocrine system?<br><br>
+        The endocrine system contributes to maintaining stability among all body systems.`,
+        options: [
+            "Providing the entire body organs with an excess amount of blood",
+            "Feeding all the body systems with a network of ductless glands",
+            "Contributing to maintaining stability among all the body systems",
+            "Helping all the body organs to function effectively and sparingly"
+        ],
+        answer: 2
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 181</span> 
+        The state in which any of three recessive disorders of galactose metabolism causes accumulation of galactose in the blood is referred to as ------------.`,
+        options: ["Galactodase", "Galactosemia", "Galactorrhea", "Galactostasis"], 
+        answer: 1 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 182</span> 
+        A characteristic of materials exhibiting an affinity to water is referred to as ………..`,
+        options: ["Hydrophobia", "Hydroxyurea", "Hydrophilicity", "Hydronephrosis"], 
+        answer: 2 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 183</span> 
+        A procedure where a doctor uses a needle to take fluid out of a joint is referred to as ……`,
+        options: ["Arthrocentesis", "Arthrodesis", "Arthrotomy", "Arthrosis"], 
+        answer: 0 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 184</span> 
+        Despite lack of enough scientific evidence, some people strongly believe that drinking tea right after a meal ……………… the absorption of iron into the blood.`,
+        options: ["Postulates", "Bursts", "Stipulates", "Bars"], 
+        answer: 3 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 185</span> 
+        The pollution of the air in some big cities ……………….. to such an alarming degree on some days that the old and the sick are advised to stay home.`,
+        options: ["Diminishes", "Drops", "Mounts", "Flickers"], 
+        answer: 2 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 186</span> 
+        The use of a vaccine is ……………… on the ability of the immune system to attack newcomers that are considered dangerous to the body.`,
+        options: ["Counseled", "Handed over", "Founded", "Sprung up"], 
+        answer: 2 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 187</span> 
+        You had better speak to him calmly and with care; he is of a very nervous ………………… and can easily get angry.`,
+        options: ["Temperament", "Treatise", "Expertise", "Patronage"], 
+        answer: 0 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 188</span> 
+        Urinary tract infections (UTI) are not …………….., so it is highly unlikely for anyone to contract a UTI from a toilet seat because the urethra in males and females would not touch the toilet seat.`,
+        options: ["Contagious", "Exacerbated", "Unprecedented", "Suspicious"], 
+        answer: 0 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 189</span> 
+        Endoscopic sinus surgery operations have now become …………. for sinusitis and intranasal operations with further development of advanced technological instruments.`,
+        options: ["Formidable", "Irreversible", "Indispensable", "Communicable"], 
+        answer: 2 
+    },
+    { 
+        question: `<span style='color: darkred;'>August 2023 - Question 190</span> 
+        A rapid technique for multiple organ …….…. allows removal of all major organs within 31 to 61 minutes after beginning the donor operation.`,
+        options: ["Harvesting", "Withdrawing", "Enduring", "Procreating"], 
+        answer: 0 
+    },
+    
+    { question: "<span style='color: darkred;'>August 2024 - Question 171</span> Oncologists speculated that some types of cancers grow and spread in some body tissues before the primary tumor becomes …………… on ultrasound or sonography.", options: ["detectable", "invasive", "resistant", "obstructive"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 172</span> Only a single inherited characteristic can …………… an individual to some disease and also incline him toward smoking.", options: ["preside", "precede", "predispose", "predetermine"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 173</span> Elderly individuals and those with cardio-respiratory issues, like asthma, seem to be the most …………… groups to various ailments.", options: ["vulnerable", "privileged", "prosperous", "prestigious"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 174</span> The patient’s heart showed …………………………, medically described as 'bradycardia.'", options: ["slow movements of blood", "slower rates of heartbeats", "irregular heartbeats", "unintentional heartbeats"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 175</span> The surgeon ordered a/an …………… to get a radiograph of the spinal canal for injection and evaluate the patient’s herniated disc.", options: ["cardiogram", "ultrasonograph", "myelogram", "mammograph"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 176</span> During the ……………, the diaphragm lowers and the external intercostals elevate the rib cage, while the opposite occurs for breathing out.", options: ["expiration", "inhalation", "elevation", "expectoration"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 177</span> The patient was prescribed to take …………… for further excretion of urine.", options: ["sedatives", "expectorants", "anesthetics", "diuretics"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 178</span> The common condition of …………… is associated with the inflammation of mucous membrane that lines the eyelids and covers the eyeballs’ anterior surface.", options: ["iridoschisis", "blepharitis", "episcleritis", "conjunctivitis"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 179</span> A gradual and usually irreversible loss of intellectual function or …………… is a common senile condition these days.", options: ["stupor", "narcosis", "dementia", "glioma"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 180</span> The child was complaining of nocturia, or the …………… at night.", options: ["excessive urination", "diminished amount of body fluids", "increased perspiration", "frequent thirst"], answer: 0 },
+
+    // Reading Comprehension 1
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 181</span> Through a technique known as adopted cell therapy, doctors replicated a woman’s own immune cells in the lab; then, they released them into her bloodstream. The tumors began melting away. Scientists are making strides in a new cancer treatment that manipulates the patient’s immune system into going to war with malignant growths. The therapy, which could apply to a wide range of cancers, offers a silver lining for patients diagnosed with melanomas in the lungs, bladder and gastrointestinal tract. For example, in a recently published study, doctors “sequenced the genome” of a 43 year-old woman, who had been struggling with a similar type of cancer that had not responded to chemotherapy. Through what is called “adopted cell therapy,” Dr. Rosenberg and colleagues, identified “cells from her immune system that attacked a specific mutation in the malignant cells. Then they grew those immune cells in the laboratory and infused billions of them back into her bloodstream,” said the Times. Rosenberg told the Times that through the process, the tumors began “melting away”. He added, “It’s the first time we have been able to actually target a specific mutation in the immune system,” Rosenberg told NBC News.<br><br> What is the main idea of the passage?`, 
+        options: ["using heat to melt cancer cells away", "using the patient’s immune system to attack cancer", "infusing silver in the blood stream to fight cancer cells", "removing cancer cells by heat and chemotherapy"], 
+        answer: 1 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 182</span> According to the passage above, the …………… by adopted cell therapy.`, 
+        options: ["immune system is suppressed", "tumor cells adapt to the new remedy", "immune cells are artificially generated", "tumor cells melt away in the lab tubes"], 
+        answer: 3 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 183</span> According to the passage above, the writer has mentioned melanoma because …………….`, 
+        options: ["it is unresponsive to chemotherapy", "there is evidence showing it is the most fatal malignancy", "it is the most common malignancy found in the world", "there have been some manipulative strides as to this cancer"], 
+        answer: 0 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 184</span> According to the passage above, the writer has a …………… attitude toward treating cancers which are unresponsive to chemotherapy.`, 
+        options: ["conservative", "discouraging", "neutral", "promising"], 
+        answer: 3 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 185</span> It can be inferred from the passage above that the …………… in order to remove the malignant mutation happening in the cell.`, 
+        options: ["blood stream is activated by chemotherapy", "blood is cleansed in the lab and then infused into the body", "cells, capable of invading malignancies, are infused", "cells become responsive to chemotherapy"], 
+        answer: 2 
+    },
+
+    // Reading Comprehension 2
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 186</span> Studies suggest relations between sleep and weight, indicating that the quantity and quality of sleep may influence hormones related to appetite. It wasn’t until recently that appetite entered the picture thanks to research on leptin and ghrelin. Doctors say both hormones, affecting our appetite, may be influenced by our sleep.<br><br>Leptin and ghrelin control feelings of hunger and fullness. Ghrelin, produced in the gastrointestinal tract, increases appetite, while leptin, produced in fat cells, sends a fullness signal to the brain. So, what’s the connection to sleep? When you don’t get enough sleep, it lowers leptin levels, so you don’t feel as satisfied after eating. It also makes ghrelin levels rise, so your appetite is increased, and you want more food. These two combined can lead to overeating and weight gain.<br><br>Having done studies on weight gain and sleep, researchers also suggest getting more sleep might reduce obesity, but the relationship is not clear because of “sleep apnea,” which stops breathing for up to a minute, sometimes hundreds of times while sleeping. The disruption in breathing prevents them from getting deep sleep.<br><br>So how does sleep apnea influence weight gain? First, patients with sleep apnea are more likely to be obese. However, they do not have the low leptin levels connected with being overweight but have abnormally high leptin levels. Then, when their apnea is treated, leptin levels drop and that helps them lose weight.<br><br> What does paragraph one mainly suggest?`, 
+        options: ["sleep directly decreases our appetite", "our appetite influences leptin and ghrelin", "sleep affects the two hormones", "leptin and ghrelin affect our sleep"], 
+        answer: 2 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 187</span> According to the passage above, the writer in paragraph 2 claims that leptin and ghrelin …………….`, 
+        options: ["increase appetite", "lead to weight gain", "lead to malnutrition", "lead to overeating and loss of sleep"], 
+        answer: 1 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 188</span> In the passage above, the underlined pronoun “it” in paragraph 2 refers to …………….`, 
+        options: ["sleep", "ghrelin", "leptin", "appetite"], 
+        answer: 0 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 189</span> According to paragraph 3 in the passage above, sleep apnea …………….`, 
+        options: ["predisposes people for deep sleep", "has nothing to do with deep sleep", "is common among obese people", "may hamper losing weight"], 
+        answer: 3 
+    },
+
+    { 
+        question: `<span style='color: darkred;'>August 2024 - Question 190</span> According to paragraph 4 in the passage above, sleep apnea …………….`, 
+        options: ["has a role in losing weight", "might lead to being overweight", "has nothing to do with deep sleep", "contributes to deep sleep"], 
+        answer: 1 
+    }
+    
+];
+
+
+
+let originalQuizData = []; // متغير لتخزين النسخة الأصلية من البيانات
+let originalCategories = []; // لتخزين الفئات الأصلية
+let categoryFilterSelected = []; // الفئات المختارة للتصفية
+
+const quizForm = document.getElementById('quiz-form');
+const resultElement = document.getElementById('result');
+const scrollButton = document.getElementById('scroll-button');
+let scrollState = 0;
+let lastAnsweredIndex = -1; // متغير لتتبع آخر سؤال تم الإجابة عليه
+
+function extractCategoryFromQuestion(questionHTML) {
+    const div = document.createElement('div');
+    div.innerHTML = questionHTML;
+    const span = div.querySelector('span[style*="darkred"]');
+    if (span) {
+        let text = span.textContent.trim();
+        const questionIndex = text.toLowerCase().indexOf('question');
+        if (questionIndex !== -1) {
+            text = text.substring(0, questionIndex).trim();
+            text = text.replace(/\-\s*$/, '').trim();
+        }
+        return text;
+    }
+    return '';
+}
+
+function initOriginalCategories() {
+    const cats = originalQuizData.map(q => extractCategoryFromQuestion(q.question)).filter(c => c);
+    originalCategories = [...new Set(cats)];
+}
+
+function loadQuiz() {
+    const fragment = document.createDocumentFragment();
+    quizData.forEach((data, index) => {
+        const questionContainer = document.createElement('div');
+        questionContainer.classList.add('question-container');
+        questionContainer.id = `question-container-${index}`;
+
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('question');
+        questionDiv.id = `question-${index}`;
+
+        questionDiv.innerHTML = `<span class="question-number">${index + 1}.</span> ${data.question}`;
+        questionContainer.appendChild(questionDiv);
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.classList.add('options-container');
+        optionsContainer.id = `options-container-${index}`;
+
+        data.options.forEach((option, optionIndex) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.classList.add('option');
+            optionDiv.dataset.index = index;
+            optionDiv.dataset.optionIndex = optionIndex;
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.id = `question-${index}-option-${optionIndex}`;
+            radioInput.name = `question-${index}`;
+            radioInput.value = optionIndex;
+            optionDiv.appendChild(radioInput);
+
+            const optionLabel = document.createElement('label');
+            optionLabel.textContent = option;
+            optionDiv.appendChild(optionLabel);
+
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        questionContainer.appendChild(optionsContainer);
+
+        // إضافة الأزرار
+        const showAnswerButton = document.createElement('button');
+        showAnswerButton.type = 'button';
+        showAnswerButton.textContent = 'Show Answer';
+        showAnswerButton.classList.add('show-answer-button');
+        showAnswerButton.dataset.index = index;
+
+        showAnswerButton.addEventListener('click', () => {
+            showIndividualAnswer(index);
+        });
+
+        const shuffleOptionsButton = document.createElement('button');
+        shuffleOptionsButton.type = 'button';
+        shuffleOptionsButton.textContent = 'Shuffle Options';
+        shuffleOptionsButton.classList.add('shuffle-options-button');
+        shuffleOptionsButton.dataset.index = index;
+
+        shuffleOptionsButton.addEventListener('click', () => {
+            shuffleOptionsForQuestion(index);
+        });
+
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.textContent = 'Clear';
+        clearButton.classList.add('clear-button');
+        clearButton.dataset.index = index;
+
+        clearButton.addEventListener('click', () => {
+            clearIndividualQuestion(index);
+        });
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.appendChild(showAnswerButton);
+        buttonContainer.appendChild(shuffleOptionsButton);
+        buttonContainer.appendChild(clearButton);
+
+        questionContainer.appendChild(buttonContainer);
+
+        fragment.appendChild(questionContainer);
+    });
+
+    quizForm.innerHTML = '';
+    quizForm.appendChild(fragment);
+
+    document.getElementById('total-questions').textContent = quizData.length;
+}
+
+function storeOriginalQuizData() {
+    originalQuizData = JSON.parse(JSON.stringify(quizData));
+}
+
+// إضافة مستمع الحدث للنقر على الخيارات
+quizForm.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.matches('.option, .option *')) {
+        let optionDiv = target.closest('.option');
+        const radioInput = optionDiv.querySelector('input[type="radio"]');
+        if (!radioInput.checked) {
+            radioInput.checked = true;
+        }
+        const index = parseInt(radioInput.name.split('-')[1]);
+        scrollState = 0;
+        lastAnsweredIndex = index; 
+        updateScrollButtonIcon();
+    }
+});
+
+function handleScrollButton() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        }
+    } else {
+        if (scrollState === 0) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 1;
+        } else if (scrollState === 1) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        } else if (scrollState === 2) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 1;
+        }
+    }
+    updateScrollButtonIcon();
+}
+
+function updateScrollButtonIcon() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    } else {
+        if (scrollState === 0) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 1) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 2) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    }
+}
+
+function shuffleOptionsForQuestion(index) {
+    const data = quizData[index];
+    const optionsContainer = document.getElementById(`options-container-${index}`);
+    const selectedInput = optionsContainer.querySelector('input:checked');
+    const selectedOptionIndex = selectedInput ? parseInt(selectedInput.value) : null;
+
+    const currentOptions = data.options.map((option, i) => ({ option, index: i }));
+    const shuffledOptions = shuffleArray(currentOptions);
+
+    data.options = shuffledOptions.map(o => o.option);
+    data.answer = shuffledOptions.findIndex(o => o.index === data.answer);
+
+    const fragment = document.createDocumentFragment();
+
+    data.options.forEach((option, optionIndex) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.classList.add('option');
+        optionDiv.dataset.index = index;
+        optionDiv.dataset.optionIndex = optionIndex;
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.id = `question-${index}-option-${optionIndex}`;
+        radioInput.name = `question-${index}`;
+        radioInput.value = optionIndex;
+
+        if (optionIndex === selectedOptionIndex) {
+            radioInput.checked = true;
+        }
+
+        optionDiv.appendChild(radioInput);
+
+        const optionLabel = document.createElement('label');
+        optionLabel.textContent = option;
+        optionDiv.appendChild(optionLabel);
+
+        fragment.appendChild(optionDiv);
+    });
+
+    optionsContainer.innerHTML = '';
+    optionsContainer.appendChild(fragment);
+
+    optionsContainer.querySelectorAll('.option').forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+}
+
+function shuffleAllOptions() {
+    quizData.forEach((_, index) => {
+        shuffleOptionsForQuestion(index);
+    });
+}
+
+function showIndividualAnswer(index) {
+    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+
+    requestAnimationFrame(() => {
+        options.forEach(optionDiv => {
+            const input = optionDiv.querySelector('input');
+            const optionIndex = parseInt(input.value);
+
+            if (optionIndex === quizData[index].answer) {
+                optionDiv.classList.add('correct-answer');
+            }
+
+            if (selectedOption) {
+                if (optionIndex === parseInt(selectedOption.value)) {
+                    if (optionIndex === quizData[index].answer) {
+                        optionDiv.classList.add('correct');
+                    } else {
+                        optionDiv.classList.add('wrong');
+                    }
+                }
+            } else {
+                optionDiv.classList.add('unanswered');
+            }
+        });
+    });
+}
+
+function clearIndividualQuestion(index) {
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+        const input = optionDiv.querySelector('input');
+        input.checked = false;
+    });
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function shuffleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    let visibleQuestions = visibleIndexes.map(i => quizData[i]);
+    visibleQuestions = shuffleArray(visibleQuestions);
+
+    for (let v = 0; v < visibleIndexes.length; v++) {
+        quizData[visibleIndexes[v]] = visibleQuestions[v];
+    }
+
+    loadQuiz();
+    applyAllFilters();
+    scrollState = 0;
+    lastAnsweredIndex = -1; 
+    updateScrollButtonIcon();
+}
+
+function showResult() {
+    let score = 0;
+    let unanswered = 0;
+
+    requestAnimationFrame(() => {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        visibleIndexes.forEach(index => {
+            const data = quizData[index];
+            const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+            const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+            options.forEach(optionDiv => {
+                optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+            });
+
+            options.forEach(optionDiv => {
+                const input = optionDiv.querySelector('input');
+                const optionIndex = parseInt(input.value);
+
+                if (optionIndex === data.answer) {
+                    optionDiv.classList.add('correct-answer');
+                }
+            });
+
+            if (selectedOption) {
+                const selectedValue = parseInt(selectedOption.value);
+                if (selectedValue === data.answer) {
+                    score++;
+                    selectedOption.parentNode.classList.add('correct');
+                } else {
+                    selectedOption.parentNode.classList.add('wrong');
+                }
+            } else {
+                unanswered++;
+                options.forEach(optionDiv => {
+                    optionDiv.classList.add('unanswered');
+                });
+            }
+        });
+
+        const wrongAnswers = visibleIndexes.length - score - unanswered;
+
+        resultElement.innerHTML = `
+            <p>Your score is ${score} out of ${visibleIndexes.length}.</p>
+            <p>Correct Answers: ${score}</p>
+            <p>Wrong Answers: ${wrongAnswers}</p>
+            <p>Unanswered Questions: ${unanswered}</p>
+        `;
+
+        addFilterButtons();
+    });
+}
+
+function addFilterButtons() {
+    const oldContainer = document.getElementById('filter-container');
+    if (oldContainer) oldContainer.remove();
+
+    const filterContainer = document.createElement('div');
+    filterContainer.id = 'filter-container';
+
+    const showCorrectButton = document.createElement('button');
+    showCorrectButton.textContent = 'Show Correct Answers';
+    showCorrectButton.classList.add('filter-button', 'correct');
+    showCorrectButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'correct';
+        applyAllFilters();
+    });
+
+    const showWrongButton = document.createElement('button');
+    showWrongButton.textContent = 'Show Wrong Answers';
+    showWrongButton.classList.add('filter-button', 'wrong');
+    showWrongButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'wrong';
+        applyAllFilters();
+    });
+
+    const showUnansweredButton = document.createElement('button');
+    showUnansweredButton.textContent = 'Show Unanswered Questions';
+    showUnansweredButton.classList.add('filter-button', 'unanswered');
+    showUnansweredButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'unanswered';
+        applyAllFilters();
+    });
+
+    const showAllButton = document.createElement('button');
+    showAllButton.textContent = 'Show All Questions';
+    showAllButton.classList.add('filter-button', 'all');
+    showAllButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+    });
+
+    filterContainer.appendChild(showCorrectButton);
+    filterContainer.appendChild(showWrongButton);
+    filterContainer.appendChild(showUnansweredButton);
+    filterContainer.appendChild(showAllButton);
+
+    resultElement.appendChild(filterContainer);
+}
+
+let currentCorrectnessFilter = 'all';
+
+function applyAllFilters() {
+    const selectedOptions = categoryFilterSelected || [];
+    quizData.forEach((data, index) => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            questionContainer.style.display = 'block';
+        } else {
+            questionContainer.style.display = 'none';
+        }
+    });
+
+    filterQuestionsCorrectness();
+    renumberVisibleQuestions();
+    const visibleCount = getVisibleQuestionIndexes().length;
+    document.getElementById('total-questions').textContent = visibleCount;
+}
+
+function filterQuestionsCorrectness() {
+    const visibleIndexes = getVisibleQuestionIndexesByCategory();
+    visibleIndexes.forEach(index => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+
+        let shouldDisplay = false;
+        const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+        const data = quizData[index];
+
+        if (currentCorrectnessFilter === 'correct') {
+            if (selectedOption && parseInt(selectedOption.value) === data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'wrong') {
+            if (selectedOption && parseInt(selectedOption.value) !== data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'unanswered') {
+            if (!selectedOption) {
+                shouldDisplay = true;
+            }
+        } else {
+            shouldDisplay = true;
+        }
+
+        questionContainer.style.display = shouldDisplay ? 'block' : 'none';
+    });
+}
+
+function renumberVisibleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    visibleIndexes.forEach((index, i) => {
+        const questionNumberSpan = document.querySelector(`#question-container-${index} .question-number`);
+        if (questionNumberSpan) {
+            questionNumberSpan.textContent = (i + 1) + ".";
+        }
+    });
+}
+
+function getVisibleQuestionIndexes() {
+    const containers = document.querySelectorAll('.question-container');
+    const visibleIndexes = [];
+    containers.forEach((c, i) => {
+        if (c.style.display !== 'none') {
+            visibleIndexes.push(i);
+        }
+    });
+    return visibleIndexes;
+}
+
+function getVisibleQuestionIndexesByCategory() {
+    const selectedOptions = categoryFilterSelected || [];
+    const indexes = [];
+    quizData.forEach((data, i) => {
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            indexes.push(i);
+        }
+    });
+    return indexes;
+}
+
+function openResetModal() {
+    document.getElementById('reset-modal').style.display = 'block';
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal').style.display = 'none';
+}
+
+function confirmResetQuiz() {
+    quizData = JSON.parse(JSON.stringify(originalQuizData));
+    loadQuiz();
+    requestAnimationFrame(() => {
+        resultElement.innerHTML = '';
+        scrollState = 0;
+        lastAnsweredIndex = -1; 
+        updateScrollButtonIcon();
+        categoryFilterSelected = [];
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+        closeResetModal();
+    });
+}
+
+function resetQuiz() {
+    openResetModal();
+}
+
+function openJumpModal() {
+    document.getElementById('jump-modal').style.display = 'block';
+    document.getElementById('jump-input').focus();
+}
+
+function closeJumpModal() {
+    document.getElementById('jump-modal').style.display = 'none';
+    clearSearchResults();
+}
+
+function displaySearchResults(results) {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+
+    if (results.length === 0) {
+        const noResults = document.createElement('p');
+        noResults.textContent = 'No matching questions found.';
+        searchResultsContainer.appendChild(noResults);
+    } else {
+        const resultsList = document.createElement('ul');
+
+        results.forEach(result => {
+            const listItem = document.createElement('li');
+
+            const resultButton = document.createElement('button');
+            resultButton.innerHTML = `Question ${result.index + 1}: ${result.questionSnippet}`;
+            resultButton.addEventListener('click', () => {
+                document.getElementById(`question-${result.index}`).scrollIntoView({ behavior: 'smooth' });
+                closeJumpModal();
+            });
+
+            listItem.appendChild(resultButton);
+            resultsList.appendChild(listItem);
+        });
+
+        searchResultsContainer.appendChild(resultsList);
+    }
+}
+
+function clearSearchResults() {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+}
+
+function stripHTML(html) {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+}
+
+function highlightTerm(text, term) {
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+}
+
+function jumpToQuestion() {
+    const input = document.getElementById('jump-input').value.trim();
+    if (input === '') return;
+
+    if (!isNaN(input)) {
+        const num = parseInt(input);
+        const idx = num - 1;
+        const visibleIndexes = getVisibleQuestionIndexes();
+        if (visibleIndexes.includes(idx)) {
+            document.getElementById(`question-${idx}`).scrollIntoView({ behavior: 'smooth' });
+            closeJumpModal();
+        } else {
+            const results = [];
+            // Maybe it's hidden due to filters
+            if (idx >= 0 && idx < quizData.length) {
+                results.push({
+                    index: idx,
+                    questionSnippet: `Question ${num}`
+                });
+            }
+            displaySearchResults(results);
+        }
+    } else {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        const results = [];
+        for (let j = 0; j < visibleIndexes.length; j++) {
+            const i = visibleIndexes[j];
+            const data = quizData[i];
+            const questionText = stripHTML(data.question);
+            if (questionText.toLowerCase().includes(input.toLowerCase())) {
+                results.push({
+                    index: i,
+                    questionSnippet: highlightTerm(questionText, input),
+                });
+            }
+        }
+        displaySearchResults(results);
+    }
+}
+
+function openCategoryModal() {
+    document.getElementById('category-modal').style.display = 'block';
+    updateCategoryFilter();
+}
+
+function closeCategoryModal() {
+    document.getElementById('category-modal').style.display = 'none';
+}
+
+function updateCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categorySelect.innerHTML = '';
+    originalCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        if (categoryFilterSelected.includes(cat)) {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+}
+
+document.getElementById('select-all-categories-btn').addEventListener('click', () => {
+    const categorySelect = document.getElementById('category-filter');
+    const allSelected = Array.from(categorySelect.options).every(option => option.selected);
+    for (let i = 0; i < categorySelect.options.length; i++) {
+        categorySelect.options[i].selected = !allSelected;
+    }
+});
+
+function applyCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categoryFilterSelected = Array.from(categorySelect.selectedOptions).map(o => o.value);
+    closeCategoryModal();
+    applyAllFilters();
+}
+
+// بدء التحميل
+storeOriginalQuizData();
+initOriginalCategories();
+loadQuiz();
+updateScrollButtonIcon();
+categoryFilterSelected = [];
+applyAllFilters();
+    </script>
+</body>
+</html>
